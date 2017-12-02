@@ -28,7 +28,8 @@ insert key val (Node k1 v1 h lt rt)
     | key < k1 = balance(Node k1 v1 h (insert key val lt) rt)
     | key > k1 = balance(Node k1 v1 h lt (insert key val rt))
 
-
+-- rebalances tree as necessary
+-- rebalancing is necessary if difference between heights of left/right trees is 2
 balance Empty = Empty
 balance (Node k v h lt rt)
     | (bf >= -1) && (bf <= 1) = Node k v ((max (height lt) (height rt))+1) lt rt
@@ -39,6 +40,9 @@ balance (Node k v h lt rt)
         lb = bfactor lt
         rb = bfactor rt
 
+-- for balancing if left side is causing imbalance
+-- if left child's balance is -1 (its left child taller than right child), rotate right
+-- if left child's balance is 1 (it's right child taller than left child), rotate left child left, then root right
 lbalance avltree lb
     | lb == -1 = rotateR avltree
     | otherwise = rotateLR avltree
@@ -50,6 +54,9 @@ lbalance avltree lb
         rotateLR (Node k v h lt rt) = 
             rotateR(Node k v h (rotateL lt) rt)
 
+-- for balancing if right side is causing imbalance
+-- if right child's balance is -1 (its left child taller than right child), rotate left
+-- if right child's balance is 1 (it's right child taller than left child), rotate right child right, then root left
 rbalance avltree rb
     | rb == 1 = rotateL avltree
     | otherwise = rotateRL avltree
@@ -61,9 +68,11 @@ rbalance avltree rb
         rotateRL (Node k v h lt rt) =
             rotateL(Node k v h lt (rotateR rt))
 
+-- produces height of given tree
 height Empty = -1
 height (Node _ _ h _ _) = h
 
+-- produces difference between height of right child - left child
 bfactor Empty = 0
 bfactor (Node k v h lt rt) = (height rt) - (height lt)
         
