@@ -28,6 +28,30 @@ insert key val (Node k1 v1 h lt rt)
     | key < k1 = balance(Node k1 v1 h (insert key val lt) rt)
     | key > k1 = balance(Node k1 v1 h lt (insert key val rt))
 
+-- deletes node with given key from AVLTree    
+delete :: (Ord k) => k -> AVLTree k v -> AVLTree k v
+delete _ Empty = Empty
+delete key (Node k v h lt rt)
+    | key > k = balance(Node k v h lt (delete key rt))
+    | key < k = balance(Node k v h (delete key lt) rt)
+    | (key == k) = removeEqKey key (Node k v h lt rt)
+    
+-- removes key when key is equal to the key of the given node
+-- if no children: delete node to give Empty
+-- if one child: give the child
+-- if two children: finds min value in rt (keep going left until Empty),
+--                  creates tree with min key,value in root,
+--                  and removes min key from rt 
+removeEqKey _ (Node _ _ _ Empty Empty) = Empty
+removeEqKey _ (Node _ _ _ lt Empty) = lt
+removeEqKey _ (Node _ _ _ Empty rt) = rt
+removeEqKey key (Node k v h lt rt) = 
+    balance (Node kmin vmin h lt (delete kmin rt))
+    where
+        (kmin, vmin) = findMin key rt
+        findMin key (Node k v h Empty rt) = (k,v)
+        findMin key (Node k v h lt rt) = findMin key lt
+
 -- rebalances tree as necessary
 -- rebalancing is necessary if difference between heights of left/right trees is 2
 balance Empty = Empty
@@ -77,6 +101,7 @@ bfactor Empty = 0
 bfactor (Node k v h lt rt) = (height rt) - (height lt)
         
 -- Example trees
+-- ===insertion===
 avl1 = (Node 7 "7" 2 (Node 2 "2" 1 (Node 1 "1" 0 Empty Empty) Empty) (Node 15 "15" 0 Empty  Empty))
 avl2 = insert 18 "18" avl1
 -- rotateL called
@@ -87,9 +112,18 @@ avlL2 = insert 6 "6" (insert 5 "5" (insert 3 "3" (insert 4 "4" avlL1)))
 avlR1 = insert 0 "0" avl1
 -- rotateR bigger example
 avlR2 = insert 11 "11" (insert 12 "12" (insert 14 "14" (insert 13 "13" avl2)))
-
 -- rotateLR 
 avlLR = insert 3 "3" (insert 4 "4" avl1)
 -- rotateRL
 avlRL = insert 13 "13" (insert 12 "12" (insert 10 "10" (insert 11 "11" avl2)))
 
+-- ===deletion===
+-- no child
+avlNC = delete 10 avlRL
+-- one child - left
+avlLC = delete 2 avlRL
+-- one child - right, B: with rebalance
+avlRC = delete 15 avl2
+avlRCB = delete 7 avl1
+-- two children
+avlTC = delete 7 avlRL
